@@ -146,25 +146,22 @@ def get_attribute_type_name(attribute_type):
     return attribute_types.get(attribute_type, 'UNKNOWN')
 
 def parse_standard_information(attribute_data):
-    creation_time = struct.unpack_from('<Q', attribute_data, 24)[0]
-    modification_time = struct.unpack_from('<Q', attribute_data, 32)[0]
-    mft_modification_time = struct.unpack_from('<Q', attribute_data, 40)[0]
-    access_time = struct.unpack_from('<Q', attribute_data, 48)[0]
+    try:
+        creation_time = struct.unpack_from('<Q', attribute_data, 8)[0]
+        modification_time = struct.unpack_from('<Q', attribute_data, 16)[0]
+        mft_modification_time = struct.unpack_from('<Q', attribute_data, 24)[0]
+        access_time = struct.unpack_from('<Q', attribute_data, 32)[0]
 
-    return {
-    'type': '$FILE_NAME',
-    'parent_directory': parent_directory,
-    'creation_time': convert_windows_time(creation_time),
-    'modification_time': convert_windows_time(modification_time),
-    'mft_modification_time': convert_windows_time(mft_modification_time),
-    'access_time': convert_windows_time(access_time),
-    'allocated_size': allocated_size,
-    'real_size': real_size,
-    'file_flags': file_flags,
-    'name_length': name_length,
-    'name_type': name_type,
-    'file_name': file_name
-}
+        return {
+            'type': '$STANDARD_INFORMATION',
+            'creation_time': convert_windows_time(creation_time),
+            'modification_time': convert_windows_time(modification_time),
+            'mft_modification_time': convert_windows_time(mft_modification_time),
+            'access_time': convert_windows_time(access_time)
+        }
+    except Exception as e:
+        logging.error(f"$STANDARD_INFORMATION parsing error: {e}")
+        return {'type': '$STANDARD_INFORMATION', 'error': str(e)}
 
 def parse_file_name(attribute_data):
     parent_directory = struct.unpack_from('<Q', attribute_data, 24)[0]
